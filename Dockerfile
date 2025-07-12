@@ -1,30 +1,35 @@
-FROM ruby:3.2-slim AS base
+FROM ruby:3.2-slim
 
 ENV BUNDLE_DEPLOYMENT=true \
     BUNDLE_PATH=/gems \
     APP_HOME=/app
 
-# Instalar dependencias del sistema necesarias para PostgreSQL y gemas nativas
+# Dependencias del sistema
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
-    curl \
+    libcurl4-openssl-dev \
     git \
-    && rm -rf /var/lib/apt/lists/*
+    curl && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR $APP_HOME
 
-# Copiar y preparar gems primero para cache de Docker
+# Copia archivos del bundle
 COPY Gemfile Gemfile.lock ./
+
+# ✅ Instala bundler y fija plataforma Linux ANTES de instalar gems
 RUN gem install bundler -v 2.6.7 && \
+    bundle lock --add-platform x86_64-linux && \
     bundle config set without 'development test' && \
     bundle install --jobs 4 --retry 3 && \
     rm -rf /root/.bundle/cache
 
-# Copiar el resto del proyecto
+# Copia el resto del código
 COPY . .
 
 EXPOSE 3018
 
-CMD ["ruby", "app/app.rb"]
+# Comando final
+CMD ["bundle", "exec", "puma", "-C", "puma.rb"]
