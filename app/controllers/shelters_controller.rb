@@ -8,7 +8,7 @@ get '/api/v1/shelters' do
   json shelters
 end
 
-# POST create shelter
+# POST create shelter (protegido por JWT)
 post '/api/v1/shelters' do
   data = JSON.parse(request.body.read)
   shelter = Shelter.create(data)

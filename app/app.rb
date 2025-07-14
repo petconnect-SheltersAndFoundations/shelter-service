@@ -3,6 +3,7 @@ require 'sinatra/json'
 require 'dotenv/load'
 require_relative './db/connect'
 require_relative './controllers/shelters_controller'
+require_relative './middleware/auth'
 
 set :port, ENV['PORT'] || 3018
 set :bind, '0.0.0.0'
